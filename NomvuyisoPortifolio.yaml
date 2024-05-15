@@ -1,0 +1,47 @@
+---
+Resources:
+  WebServer:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow access on ports 80 and 22
+      GroupName: MyWebServer 
+      SecurityGroupIngress:
+        - IpProtocol: "-1"
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 41.116.25.170/32
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 41.116.25.170/32 
+      Tags:
+        - Key: Name
+          Value: MyWebServer
+      VpcId: vpc-0eb16b9f1ef694520 
+
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t3.micro
+      SubnetId: subnet-08f8c1c54330e6080
+      SecurityGroupIds:
+        - !Ref WebServer
+      KeyName: vuvu
+      ImageId: ami-03238ca76a3266a07
+      Tags:
+        - Key: Name
+          Value: MyWebS
+      UserData:
+        Fn::Base64:
+          !Sub |
+            #!/bin/bash -xe
+            sudo su
+            yum update -y
+            yum install -y httpd
+            cd /var/www/html
+            wget https://github.com/Nomvuyiso260/NomvuyisoPortfolio/archive/refs/heads/main.zip
+            unzip main.zip
+            cp -r NomvuyisoPortfolio-main/* /var/www/html/
+            rm -rf NomvuyisoPortfolio-main main.zip
+            systemctl enable httpd 
+            systemctl start httpd
